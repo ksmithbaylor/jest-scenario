@@ -1,0 +1,25 @@
+{
+  "name": "tape-scenario",
+  "version": "1.0.0",
+  "description": "A small helper for reducing test verbosity",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ksmithbaylor/tape-scenario.git"
+  },
+  "keywords": [
+    "tape",
+    "scenario",
+    "tests",
+    "testing"
+  ],
+  "author": "Kevin Smith",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ksmithbaylor/tape-scenario/issues"
+  },
+  "homepage": "https://github.com/ksmithbaylor/tape-scenario#readme"
+}
