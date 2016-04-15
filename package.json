@@ -21,5 +21,11 @@
   "bugs": {
     "url": "https://github.com/ksmithbaylor/tape-scenario/issues"
   },
-  "homepage": "https://github.com/ksmithbaylor/tape-scenario#readme"
+  "homepage": "https://github.com/ksmithbaylor/tape-scenario#readme",
+  "dependencies": {
+    "object-keys": "^1.0.9"
+  },
+  "devDependencies": {
+    "tape": "^4.5.1"
+  }
 }
