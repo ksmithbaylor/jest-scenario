@@ -1,8 +1,16 @@
+[![npm version](https://badge.fury.io/js/tape-scenario.svg)](https://badge.fury.io/js/tape-scenario)
+
 # tape-scenario
 
 This is a simple abstraction on top of
 [`tape`](https://github.com/substack/tape). It allows you to reduce the
 amount of code needed to create repetitive test cases.
+
+# Installation
+
+```
+npm install --save-dev tape-scenario
+```
 
 # Examples
 
