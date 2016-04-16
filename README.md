@@ -1,7 +1,7 @@
 # tape-scenario
 
 This is a simple abstraction on top of
-`[tape](https://github.com/substack/tape)`'s `test`. It allows you to reduce the
+[`tape`](https://github.com/substack/tape). It allows you to reduce the
 amount of code needed to create repetitive test cases.
 
 # Examples
