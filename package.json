@@ -1,6 +1,6 @@
 {
   "name": "tape-scenario",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A small helper for reducing test verbosity",
   "main": "index.js",
   "scripts": {
