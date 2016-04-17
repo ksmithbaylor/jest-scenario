@@ -1,13 +1,9 @@
-import objectKeys from 'object-keys';
-
-const keys = Object.keys || objectKeys;
-
 function pairs(object) {
-  return keys(object).map((key) => [key, object[key]]);
+  return Object.keys(object).map((key) => [key, object[key]]);
 }
 
 export function scenario(test, prefix, testCases, testBody) {
-  keys(testCases).forEach(key => {
+  Object.keys(testCases).forEach(key => {
     test(prefix + key, t => {
       testBody(t, testCases[key]);
     });
