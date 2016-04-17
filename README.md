@@ -1,7 +1,7 @@
 [![npm version](https://badge.fury.io/js/tape-scenario.svg)](https://badge.fury.io/js/tape-scenario)
+[![Build Status](https://travis-ci.org/ksmithbaylor/tape-scenario.svg?branch=master)](https://travis-ci.org/ksmithbaylor/tape-scenario)
 [![Dependency Status](https://david-dm.org/ksmithbaylor/tape-scenario.svg)](https://david-dm.org/ksmithbaylor/tape-scenario)
 [![devDependency Status](https://david-dm.org/ksmithbaylor/tape-scenario/dev-status.svg)](https://david-dm.org/ksmithbaylor/tape-scenario#info=devDependencies)
-[![Build Status](https://travis-ci.org/ksmithbaylor/tape-scenario.svg?branch=master)](https://travis-ci.org/ksmithbaylor/tape-scenario)
 
 # tape-scenario
 
