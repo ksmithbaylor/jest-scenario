@@ -1,5 +1,6 @@
 var test = require('tape');
-var scenario = require('.');
+var scenario = require('.').scenario;
+var combinations = require('.').combinations;
 
 test('calls the test function once for each case', t => {
   var cases = { one: 1, two: 2, three: 3, four: 4, five: 5 };
@@ -39,5 +40,27 @@ test('passes the right value to the test body', t => {
   }
 
   scenario(fakeTest, '', cases, fakeTestBody);
+  t.end();
+});
+
+test('combinations: works correctly for basic usage', t => {
+  t.deepEqual(
+    combinations({
+      a: [1, 2],
+      b: [4, 5],
+      c: [7, 8]
+    }),
+    {
+      'a[0] b[0] c[0]': { a: 1, b: 4, c: 7 },
+      'a[0] b[0] c[1]': { a: 1, b: 4, c: 8 },
+      'a[0] b[1] c[0]': { a: 1, b: 5, c: 7 },
+      'a[0] b[1] c[1]': { a: 1, b: 5, c: 8 },
+      'a[1] b[0] c[0]': { a: 2, b: 4, c: 7 },
+      'a[1] b[0] c[1]': { a: 2, b: 4, c: 8 },
+      'a[1] b[1] c[0]': { a: 2, b: 5, c: 7 },
+      'a[1] b[1] c[1]': { a: 2, b: 5, c: 8 }
+    },
+    'produces the right test cases'
+  );
   t.end();
 });
