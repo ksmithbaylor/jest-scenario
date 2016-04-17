@@ -28,3 +28,7 @@ export function combinations(sets) {
     }), {})
   ), {'': {}});
 };
+
+export function scenarioOutline(test, prefix, outline, testBody) {
+  scenario(test, prefix, combinations(outline), testBody);
+}
