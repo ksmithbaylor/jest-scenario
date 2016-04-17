@@ -1,20 +1,20 @@
-var keys = Object.keys || require('object-keys');
+import objectKeys from 'object-keys';
 
-module.exports.scenario = function scenario(test, prefix, testCases, testBody) {
-  keys(testCases).forEach(function (key) {
-    test(prefix + key, function (t) {
+const keys = Object.keys || objectKeys;
+
+function pairs(object) {
+  return keys(object).map((key) => [key, object[key]]);
+}
+
+export function scenario(test, prefix, testCases, testBody) {
+  keys(testCases).forEach(key => {
+    test(prefix + key, t => {
       testBody(t, testCases[key]);
     });
   });
 }
 
-function pairs(object) {
-  return keys(object).map(function (key) {
-    return [key, object[key]];
-  });
-}
-
-module.exports.combinations = function combinations(sets) {
+export function combinations(sets) {
   return pairs(sets).reduceRight((oldResults, [setName, setValues]) => (
     setValues.reduce((newResults, setValue, index) => ({
       ...newResults,

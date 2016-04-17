@@ -1,6 +1,5 @@
-var test = require('tape');
-var scenario = require('.').scenario;
-var combinations = require('.').combinations;
+import test from 'tape';
+import { scenario, combinations } from '.';
 
 test('calls the test function once for each case', t => {
   var cases = { one: 1, two: 2, three: 3, four: 4, five: 5 };
