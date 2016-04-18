@@ -13,10 +13,14 @@
     "url": "git+https://github.com/ksmithbaylor/tape-scenario.git"
   },
   "keywords": [
+    "tap",
     "tape",
     "scenario",
+    "scenarios",
     "outline",
+    "outlines",
     "cucumber",
+    "test",
     "tests",
     "testing"
   ],
