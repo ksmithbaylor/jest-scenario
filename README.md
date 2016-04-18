@@ -131,7 +131,7 @@ Here's a real-world example of simplifying a `scenario` usage with
 
 ```javascript
 import test from 'tape';
-import scenario from 'tape-scenario';
+import { scenario } from 'tape-scenario';
 
 // The function under test
 function numberWithCommas(number) {
@@ -220,7 +220,13 @@ ok 32 seven digits
 # ok
 ```
 
-But a simpler way to express the tests is:
+But a simpler way to express the tests is to change the import statement to:
+
+```javascript
+import { scenarioOutline } from 'tape-scenario';
+```
+
+and then:
 
 ```javascript
 scenarioOutline(test, 'Util: numberWithCommas: ', {
