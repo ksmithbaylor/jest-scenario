@@ -10,20 +10,20 @@ This is a simple abstraction on top of
 [`tape`](https://github.com/substack/tape). It allows you to reduce the
 amount of code needed to create repetitive test cases.
 
-# Installation
+## Installation
 
 ```
 npm install --save-dev tape-scenario
 ```
 
-# Examples
+## Examples
 
 You can use either of two top-level exports to write tests. `scenario` lets you
 specify tests one at a time, giving each one a name. `scenarioOutline` generates
 all possible combinations of the sets you pass it and runs the test body once
 for each combination.
 
-## [`scenario`] Basic Usage
+### [`scenario`] Basic Usage
 
 ```javascript
 import test from 'tape';
@@ -75,7 +75,7 @@ ok 6 should be equal
 # ok
 ```
 
-## [`scenario`] Using Objects
+### [`scenario`] Using Objects
 
 Instead of a simple scalar value, you may wish to combine multiple values for
 each test case. For simple uses, `scenario` works well for this. For a more
@@ -119,7 +119,7 @@ ok 2 should be equal
 # ok
 ```
 
-## [`scenarioOutline`] Generating Combinations
+### [`scenarioOutline`] Generating Combinations
 
 When you want to test all combinations of a few sets of values, you could use
 `scenario` to manually specify each one. If there were two options for each
@@ -320,7 +320,7 @@ scenarioOutline(test, 'Util: numberWithCommas: ', {
 The above scenario outline produces the exact same tests as the above `scenario`
 example, but is more flexible and less repetitive. Yay!
 
-# API
+## API
 
 ### `scenario(test, prefix, testCases, testBody);`
 
@@ -342,7 +342,7 @@ Same as `scenario`, except `outline` has keys which are "sets" to combine. The
 `testBody` will be run once for each possible combination using one value from
 each set.
 
-# Contributing
+## Contributing
 
 For suggestions, bug reports, or contributions, please open an issue or pull
 request on the project on GitHub! Feedback is very welcome.
