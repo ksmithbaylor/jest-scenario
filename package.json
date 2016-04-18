@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint *.js",
-    "test": "tape -r babel-register tests.js"
+    "test": "tape -r babel-register tests.js | tap-difflet"
   },
   "repository": {
     "type": "git",
@@ -32,6 +32,7 @@
     "babel-register": "^6.7.2",
     "eslint": "^2.8.0",
     "eslint-config-airbnb": "^7.0.0",
+    "tap-difflet": "^0.4.0",
     "tape": "^4.5.1"
   }
 }

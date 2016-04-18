@@ -42,13 +42,17 @@ test('passes the right value to the test body', t => {
   t.end();
 });
 
-test('combinations: works correctly for basic usage', t => {
+test('combinations: multiple values in sets', t => {
   t.deepEqual(
-    combinations({
-      a: [1, 2],
-      b: [4, 5],
-      c: [7, 8]
-    }),
+    combinations({ a: [1, 2], }),
+    {
+      'a[0]': { a: 1 },
+      'a[1]': { a: 2 },
+    },
+    '2x1 input'
+  );
+  t.deepEqual(
+    combinations({ a: [1, 2], b: [4, 5], c: [7, 8] }),
     {
       'a[0] b[0] c[0]': { a: 1, b: 4, c: 7 },
       'a[0] b[0] c[1]': { a: 1, b: 4, c: 8 },
@@ -59,7 +63,44 @@ test('combinations: works correctly for basic usage', t => {
       'a[1] b[1] c[0]': { a: 2, b: 5, c: 7 },
       'a[1] b[1] c[1]': { a: 2, b: 5, c: 8 }
     },
-    'produces the right test cases'
+    '2x3 input'
+  );
+  t.end();
+});
+
+test('combinations: single value in sets', t => {
+  t.deepEqual(
+    combinations({ a: [1], }),
+    {
+      'a[0]': { a: 1 }
+    },
+    '1x1 input'
+  );
+  t.deepEqual(
+    combinations({ a: [1], b: [4], }),
+    {
+      'a[0] b[0]': { a: 1, b: 4 }
+    },
+    '1x2 input'
+  );
+  t.end();
+});
+
+test('combinations: empty sets', t => {
+  t.deepEqual(
+    combinations({ a: [], }),
+    {},
+    '0x1 input'
+  );
+  t.deepEqual(
+    combinations({ a: [], b: [], }),
+    {},
+    '0x2 input'
+  );
+  t.deepEqual(
+    combinations({ a: [], b: [1], c: [] }),
+    {},
+    '0x3 input with an extra friend'
   );
   t.end();
 });
