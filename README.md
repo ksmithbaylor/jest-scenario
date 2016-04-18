@@ -18,11 +18,16 @@ npm install --save-dev tape-scenario
 
 # Examples
 
-## Basic usage:
+You can use either of two top-level exports to write tests. `scenario` lets you
+specify tests one at a time, giving each one a name. `scenarioOutline` generates
+all possible combinations of the sets you pass it and runs the test body once
+for each combination.
+
+## [`scenario`] Basic Usage
 
 ```javascript
 import test from 'tape';
-import scenario from 'tape-scenario';
+import { scenario } from 'tape-scenario';
 
 // The function under test
 function id(something) {
@@ -70,11 +75,15 @@ ok 6 should be equal
 # ok
 ```
 
-## Using objects as the test case:
+## [`scenario`] Using Objects
+
+Instead of a simple scalar value, you may wish to combine multiple values for
+each test case. For simple uses, `scenario` works well for this. For a more
+powerful way to express combinatorial tests, see `scenarioOutline`.
 
 ```javascript
 import test from 'tape';
-import scenario from 'tape-scenario';
+import { scenario } from 'tape-scenario';
 
 // The function under test
 function add(nums) {
@@ -83,14 +92,8 @@ function add(nums) {
 
 // The test scenarios
 scenario(test, 'Adds numbers correctly when numbers are ', {
-  'positive': {
-    nums: [1, 2, 3, 4, 5],
-    sum: 15
-  },
-  'negative': {
-    nums: [-1, -2, -3, -4, -5],
-    sum: -15
-  }
+  'positive': { nums: [1, 2, 3, 4, 5],      sum: 15  },
+  'negative': { nums: [-1, -2, -3, -4, -5], sum: -15 }
 }, (t, testCase) => {
   t.equal(
     add(testCase.nums),
@@ -116,7 +119,15 @@ ok 2 should be equal
 # ok
 ```
 
-## More advanced example
+## [`scenarioOutline`] Generating Combinations
+
+When you want to test all combinations of a few sets of values, you could use
+`scenario` to manually specify each one. If there were two options for each
+property, it would look similar to a truth table. But there is a more powerful
+way to do this using `scenarioOutline`.
+
+Here's a real-world example of simplifying a `scenario` usage with
+`scenarioOutline`. Before:
 
 ```javascript
 import test from 'tape';
@@ -141,10 +152,10 @@ function numberWithCommas(number) {
 
 // The test scenarios
 scenario(test, 'Util: numberWithCommas: ', {
-  'positive numbers': { multiplier: 1, string: false },
+  'positive numbers': { multiplier: 1,  string: false },
   'negative numbers': { multiplier: -1, string: false },
-  'positive strings': { multiplier: 1, string: true },
-  'negative strings': { multiplier: -1, string: true },
+  'positive strings': { multiplier: 1,  string: true  },
+  'negative strings': { multiplier: -1, string: true  },
 }, (t, { multiplier, string }) => {
   const n = input => numberWithCommas(string ? input.toString() : input);
   const prefix = multiplier < 0 ? '-' : '';
@@ -209,9 +220,109 @@ ok 32 seven digits
 # ok
 ```
 
+But a simpler way to express the tests is:
+
+```javascript
+scenarioOutline(test, 'Util: numberWithCommas: ', {
+  'multiplier': [1, -1],
+  'string': [true, false]
+}, (t, { multiplier, string }) => {
+  const n = input => numberWithCommas(string ? input.toString() : input);
+  const prefix = multiplier < 0 ? '-' : '';
+
+  t.equal(n(multiplier * 0), '0', 'zero');
+  t.equal(n(multiplier * 1), prefix + '1', 'one digit');
+  t.equal(n(multiplier * 12), prefix + '12', 'two digits');
+  t.equal(n(multiplier * 123), prefix + '123', 'three digits');
+  t.equal(n(multiplier * 1234), prefix + '1,234', 'four digits');
+  t.equal(n(multiplier * 12345), prefix + '12,345', 'five digits');
+  t.equal(n(multiplier * 123456), prefix + '123,456', 'six digits');
+  t.equal(n(multiplier * 1234567), prefix + '1,234,567', 'seven digits');
+  t.end();
+});
+```
+
+This produces similar output to before:
+
+```
+TAP version 13
+# Util: numberWithCommas: multiplier[0] string[0]
+ok 1 zero
+ok 2 one digit
+ok 3 two digits
+ok 4 three digits
+ok 5 four digits
+ok 6 five digits
+ok 7 six digits
+ok 8 seven digits
+# Util: numberWithCommas: multiplier[0] string[1]
+ok 9 zero
+ok 10 one digit
+ok 11 two digits
+ok 12 three digits
+ok 13 four digits
+ok 14 five digits
+ok 15 six digits
+ok 16 seven digits
+# Util: numberWithCommas: multiplier[1] string[0]
+ok 17 zero
+ok 18 one digit
+ok 19 two digits
+ok 20 three digits
+ok 21 four digits
+ok 22 five digits
+ok 23 six digits
+ok 24 seven digits
+# Util: numberWithCommas: multiplier[1] string[1]
+ok 25 zero
+ok 26 one digit
+ok 27 two digits
+ok 28 three digits
+ok 29 four digits
+ok 30 five digits
+ok 31 six digits
+ok 32 seven digits
+
+1..32
+# tests 32
+# pass  32
+
+# ok
+```
+
+And if you wanted to reduce repetition in the test body, you could take it one
+step further:
+
+```javascript
+scenarioOutline(test, 'Util: numberWithCommas: ', {
+  'multiplier': [1, -1],
+  'string': [true, false],
+  'expectedResults': [
+    [0, '0'],
+    [1, '1'],
+    [12, '12'],
+    [123, '123'],
+    [1234, '1,234'],
+    [12345, '12,345'],
+    [123456, '123,456'],
+    [1234567, '1,234,567']
+  ]
+}, (t, { multiplier, string, expectedResults: [value, asString] }) => {
+  const n = input => numberWithCommas(string ? input.toString() : input);
+  const prefix = multiplier < 0 ? '-' : '';
+  const expected = (asString === '0') ? '0' : prefix + asString; // no -0
+
+  t.equal(n(multiplier * value), expected, `produces ${expected} correctly`);
+  t.end();
+});
+```
+
+The above scenario outline produces the exact same tests as the above `scenario`
+example, but is more flexible and less repetitive. Yay!
+
 # API
 
-`scenario(test, prefix, testCases, testBody);`
+### `scenario(test, prefix, testCases, testBody);`
 
 - `test` - The `tape` library itself; this is so that you can use other similar
     modules like `tape-catch` if you want.
@@ -224,6 +335,12 @@ ok 32 seven digits
     do the right thing with each value.
 - `testBody` - A function similar to the callback you would pass to a `tape`
     test, but with an extra argument for the `testCase`.
+
+### `scenarioOutline(test, prefix, outline, testBody);`
+
+Same as `scenario`, except `outline` has keys which are "sets" to combine. The
+`testBody` will be run once for each possible combination using one value from
+each set.
 
 # Contributing
 
