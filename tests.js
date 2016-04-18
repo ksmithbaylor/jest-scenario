@@ -2,9 +2,9 @@ import test from 'tape';
 import { scenario, combinations } from './index';
 
 test('calls the test function once for each case', t => {
-  var cases = { one: 1, two: 2, three: 3, four: 4, five: 5 };
+  const cases = { one: 1, two: 2, three: 3, four: 4, five: 5 };
 
-  var timesCalled = 0;
+  let timesCalled = 0;
   function fakeTest() {
     timesCalled++;
   }
@@ -16,8 +16,8 @@ test('calls the test function once for each case', t => {
 });
 
 test('appends the right prefix to each case', t => {
-  var cases = { one: 1 };
-  var prefix = 'Testing the thing: ';
+  const cases = { one: 1 };
+  const prefix = 'Testing the thing: ';
 
   function fakeTest(testName) {
     t.equal(testName, 'Testing the thing: one', 'used the right name');
@@ -28,7 +28,7 @@ test('appends the right prefix to each case', t => {
 });
 
 test('passes the right value to the test body', t => {
-  var cases = { one: [1, 2, 3] };
+  const cases = { one: [1, 2, 3] };
 
   function fakeTest(prefix, cb) {
     cb();
