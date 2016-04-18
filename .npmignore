@@ -1,5 +1,9 @@
 node_modules
 .gitignore
+.babelrc
+.eslintrc
+.travis.yml
+.npmignore
 tests
 src
 README.md
