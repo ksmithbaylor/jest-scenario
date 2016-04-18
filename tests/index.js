@@ -1,5 +1,5 @@
 import test from 'tape';
-import { scenario, combinations } from './index';
+import { scenario, combinations } from '../src';
 
 test('calls the test function once for each case', t => {
   const cases = { one: 1, two: 2, three: 3, four: 4, five: 5 };
