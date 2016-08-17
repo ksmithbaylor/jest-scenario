@@ -6,134 +6,206 @@
 
 # tape-scenario
 
-This is a simple abstraction on top of
-[`tape`](https://github.com/substack/tape). It allows you to reduce the
-amount of code needed to create repetitive test cases.
+A small (30 lines of code) and simple abstraction on top of [`tape`](https://github.com/substack/tape) that reduces the amount of code needed to create repetitive test cases.
 
-## Installation
+## installation
 
 ```
 npm install --save-dev tape-scenario
 ```
 
-## Examples
+## overview
 
-You can use either of two top-level exports to write tests. `scenario` lets you
-specify tests one at a time, giving each one a name. `scenarioOutline` generates
-all possible combinations of the sets you pass it and runs the test body once
-for each combination.
+This library has just two functions: `scenario` and `scenarioOutline`. `scenario` is a simple way to name a bunch of test cases one-by-one and execute the same test body for each of them. `scenarioOutline` is much more powerful and lets you run the same test body for each and every combination of the sets of values you pass in. If that's confusing, don't worry! Check out the examples below.
 
-### [`scenario`] Basic Usage
+The api for both functions is pretty similar:
+
+```javascript
+function scenario(test, prefix, testCases, testBody) { ... }
+function scenarioOutline(test, prefix, outline, testBody) { ... }
+```
+
+- `test`: The instance of `tape` you're using, which allows you to use wrappers
+  like `tape-catch` or `blue-tape`.
+- `prefix`: The string each test case title should start with, if you're using
+  a reporter that shows you the names of your tests.
+- `testCases`/`outline`: An object that describes your test cases. See the
+  examples and full API below for more details.
+- `testBody`: The actual test you want to execute for your test cases. It is
+  identical to what you would pass to `test` in a normal `tape` test, but it
+  takes an extra argument for the test case itself. See the examples and full
+  API below for more details.
+
+### scenario
+
+`scenario` is the simplest way to specify your test cases. You give each test case a name and some value (could be a primitive, an array, an object, or whatever else you want) to use in your test body.
+
+Keep in mind that these are just examples, you can use whatever you want as your test cases! It's completely up to you; all this function does is pass each test case blindly as the second argument to your test body.
+
+Basic usage, naming each test case and passing a single value:
 
 ```javascript
 import test from 'tape';
 import { scenario } from 'tape-scenario';
 
-// The function under test
-function id(something) {
-  return something;
-}
-
-// The test scenarios
-scenario(test, 'Identity function for ', {
-  'number 1': 1,
-  'number 2': 2,
-  'number 3': 3,
-  'zero': 0,
-  'null': null,
-  'a string': 'hello world'
-}, (t, testCase) => {
-  t.equal(
-    id(testCase),
-    testCase
-  );
+scenario(test, 'value is truthy: ', {
+  'a non-empty string': 'hello world',
+  'a symbol': Symbol(),
+  'an empty object': {}
+}, (t, input) => {
+  t.assert(Boolean(input), 'the value is truthy');
   t.end();
 });
 ```
 
-This produces the following output when run using `tape`:
+The test body gets run once for each key in the `testCases` object. The first
+argument is a `tape` test object like usual, but it gets an additional argument which
+is whatever value you gave to the test case. So in the example above, the test would
+be run three times with the values `'hello world'`, `Symbol()`, and `{}`.
 
-```
-TAP version 13
-# Identity function for number 1
-ok 1 should be equal
-# Identity function for number 2
-ok 2 should be equal
-# Identity function for number 3
-ok 3 should be equal
-# Identity function for zero
-ok 4 should be equal
-# Identity function for null
-ok 5 should be equal
-# Identity function for a string
-ok 6 should be equal
-
-1..6
-# tests 6
-# pass  6
-
-# ok
-```
-
-### [`scenario`] Using Objects
-
-Instead of a simple scalar value, you may wish to combine multiple values for
-each test case. For simple uses, `scenario` works well for this. For a more
-powerful way to express combinatorial tests, see `scenarioOutline`.
+Testing a function with expected input and output:
 
 ```javascript
-import test from 'tape';
-import { scenario } from 'tape-scenario';
-
-// The function under test
-function add(nums) {
-  return nums.reduce((a, b) => a + b);
+function square(x) {
+  if (typeof x !== 'number') throw new Error('invalid input');
+  return x * x;
 }
 
-// The test scenarios
-scenario(test, 'Adds numbers correctly when numbers are ', {
-  'positive': { nums: [1, 2, 3, 4, 5],      sum: 15  },
-  'negative': { nums: [-1, -2, -3, -4, -5], sum: -15 }
-}, (t, testCase) => {
-  t.equal(
-    add(testCase.nums),
-    testCase.sum
-  );
+scenario(test, 'square: correct output for ', {
+  'a positive number': [7, 49],
+  'a negative number': [-3, 9],
+  'zero': [0, 0],
+  'infinity': [Infinity, Infinity]
+}, (t, [input, expectedOutput]) => {
+  t.equal(square(input), expectedOutput);
   t.end();
 });
 ```
 
-This produces the following output when run using `tape`:
+In this example, instead of a simple value, we gave each test case an array.  We're using the first element in the array as the input to the `square` function, and the second element as the expected output. If you're using ES6, you can destructure the array in the argument list of the test body function, or just call it `testCase` and grab the values out manually using ES5.
 
+More advanced test cases with a "configuration" object:
+
+```javascript
+var textField = document.getElementById('text-field');
+var display = document.getElementById('display');
+
+function sillyChangeHandler(event) {
+  var previous = textField.value;
+  var next = event.target.value;
+  if (next.length < previous.length) {
+    display.textContent = 'deleted some text';
+  } else {
+    display.textContent = 'added some text';
+  }
+}
+
+scenario(test, 'sillyChangeHandler: ', {
+  'adding one character': {
+    previous: 'asd',
+    next: 'asdf',
+    expectedDisplay: 'added some text'
+  },
+  'adding multiple characters': {
+    previous: 'asdf',
+    next: 'asdfqwer',
+    expectedDisplay: 'added some text'
+  },
+  'removing a character': {
+    previous: 'asdf',
+    next: 'asd',
+    expectedDisplay: 'deleted some text'
+  },
+}, (t, { previous, next, expectedDisplay }) => {
+  textField.textContent = previous;
+  sillyChangeHandler({ target: { value: next } });
+  t.equal(display.textContent, expectedDisplay);
+  t.end();
+});
 ```
-TAP version 13
-# Adds numbers correctly when numbers are positive
-ok 1 should be equal
-# Adds numbers correctly when numbers are negative
-ok 2 should be equal
 
-1..2
-# tests 2
-# pass  2
+In this super-contrived example, we are giving an object for each test case. The object configures each test case with the value the text field should previously hold, the next value the text field should change to, and the expected content of the "display".
 
-# ok
+Again using ES6 destructuring, we're grabbing those configuration values out of the object in the argument list of the test body, and then running the test with those values. Keep in mind that there's nothing special about `previous`, `next`, or `expectedDisplay`. We made them up because they were useful for this set of tests, but we could have added more or different values to this object.
+
+### scenarioOutline
+
+`scenarioOutline` is much more powerful than `scenario`. You would use it when you want to test all possible combinations of a few things, without naming each individual test case. Before looking at code, imagine you had a set of colors, numbers, and shapes. They might look like this:
+
+```javascript
+var colors = ['red', 'blue', 'green', 'black'];
+var numbers = [42, 12, 7, 18, -53];
+var shapes = ['triangle', 'circle', 'square']
 ```
 
-### [`scenarioOutline`] Generating Combinations
+Say you wanted to test some function that combined these three things. You could do this by specifying a test case for each combination:
 
-When you want to test all combinations of a few sets of values, you could use
-`scenario` to manually specify each one. If there were two options for each
-property, it would look similar to a truth table. But there is a more powerful
-way to do this using `scenarioOutline`.
+|test case name|Color|Number|Shape|
+|---|---|---|---|
+|test 1|red|42|triangle|
+|test 2|red|42|circle|
+|test 3|red|42|square|
+|test 4|red|12|triangle|
+|test 5|red|12|circle|
+|...|...|...|...|
+|test 6|black|-53|square|
 
-Here's a real-world example of simplifying a `scenario` usage with
-`scenarioOutline`. Before:
+But this would get very tedious. There are a total of 60 possible combinations! And since you don't care about what each test case is "called", you're forced to make up names like "test 1", "test 2", and so on.
+
+This is exactly the work that `scenarioOutline` does for you. Let's look at an example:
+
+```javascript
+scenarioOutline(test, 'colorNumberShape: does not throw for ', {
+  color: ['red', 'blue', 'green', 'black'],
+  number: [42, 12, 7, 18, -53],
+  shape: ['triangle', 'circle', 'square']
+}, (t, { color, number, shape }) => {
+  t.doesNotThrow(() => {
+    colorNumberShape(color, number, shape);
+  });
+  t.end();
+});
+```
+
+And in 10 lines of code, you've written 60 test cases and ensured that every possible combination is tested! The test cases will be named using indices into each array you give it, like so:
+
+|test case name|Color|Number|Shape|
+|---|---|---|---|
+|colorNumberShape: does not throw for color[0] number[0] shape[0]|red|42|triangle|
+|colorNumberShape: does not throw for color[0] number[0] shape[1]|red|42|circle|
+|colorNumberShape: does not throw for color[0] number[0] shape[2]|red|42|square|
+|colorNumberShape: does not throw for color[0] number[1] shape[0]|red|12|triangle|
+|colorNumberShape: does not throw for color[0] number[2] shape[0]|red|12|circle|
+|...|...|...|...|
+|colorNumberShape: does not throw for color[3] number[4] shape[2]|black|-53|square|
+
+Going back to our `square` example from earlier, here's another example that avoids the problem of having to name each test case:
 
 ```javascript
 import test from 'tape';
-import { scenario } from 'tape-scenario';
+import { scenarioOutline } from 'tape-scenario';
 
-// The function under test
+scenarioOutline(test, 'square: invalid ', {
+  input: [undefined, 'hello', Symbol(), null]
+}, (t, { input }) => {
+  t.throws(() => {
+    square(input);
+  });
+  t.end();
+});
+
+// Generated test cases:
+//   square: invalid input[0]
+//   square: invalid input[1]
+//   square: invalid input[2]
+//   square: invalid input[3]
+```
+
+Here's a crazy example usage of `scenarioOutline` that I pulled verbatim from a project at work:
+
+```javascript
+// The function under test. For the input, it needs to both positive and
+// negative numbers, either as strings or as numbers.
 function numberWithCommas(number) {
   const isValidNumberOrString = ((
     typeof number === 'number'
@@ -147,159 +219,9 @@ function numberWithCommas(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
-  return NULL_VALUE;
+  return '- -';
 }
 
-// The test scenarios
-scenario(test, 'Util: numberWithCommas: ', {
-  'positive numbers': { multiplier: 1,  string: false },
-  'negative numbers': { multiplier: -1, string: false },
-  'positive strings': { multiplier: 1,  string: true  },
-  'negative strings': { multiplier: -1, string: true  },
-}, (t, { multiplier, string }) => {
-  const n = input => numberWithCommas(string ? input.toString() : input);
-  const prefix = multiplier < 0 ? '-' : '';
-
-  t.equal(n(multiplier * 0), '0', 'zero');
-  t.equal(n(multiplier * 1), prefix + '1', 'one digit');
-  t.equal(n(multiplier * 12), prefix + '12', 'two digits');
-  t.equal(n(multiplier * 123), prefix + '123', 'three digits');
-  t.equal(n(multiplier * 1234), prefix + '1,234', 'four digits');
-  t.equal(n(multiplier * 12345), prefix + '12,345', 'five digits');
-  t.equal(n(multiplier * 123456), prefix + '123,456', 'six digits');
-  t.equal(n(multiplier * 1234567), prefix + '1,234,567', 'seven digits');
-  t.end();
-});
-```
-
-This produces the following output when run using `tape`:
-
-```
-TAP version 13
-# Util: numberWithCommas: positive numbers
-ok 1 zero
-ok 2 one digit
-ok 3 two digits
-ok 4 three digits
-ok 5 four digits
-ok 6 five digits
-ok 7 six digits
-ok 8 seven digits
-# Util: numberWithCommas: negative numbers
-ok 9 zero
-ok 10 one digit
-ok 11 two digits
-ok 12 three digits
-ok 13 four digits
-ok 14 five digits
-ok 15 six digits
-ok 16 seven digits
-# Util: numberWithCommas: positive strings
-ok 17 zero
-ok 18 one digit
-ok 19 two digits
-ok 20 three digits
-ok 21 four digits
-ok 22 five digits
-ok 23 six digits
-ok 24 seven digits
-# Util: numberWithCommas: negative strings
-ok 25 zero
-ok 26 one digit
-ok 27 two digits
-ok 28 three digits
-ok 29 four digits
-ok 30 five digits
-ok 31 six digits
-ok 32 seven digits
-
-1..32
-# tests 32
-# pass  32
-
-# ok
-```
-
-But a simpler way to express the tests is to change the import statement to:
-
-```javascript
-import { scenarioOutline } from 'tape-scenario';
-```
-
-and then:
-
-```javascript
-scenarioOutline(test, 'Util: numberWithCommas: ', {
-  'multiplier': [1, -1],
-  'string': [true, false]
-}, (t, { multiplier, string }) => {
-  const n = input => numberWithCommas(string ? input.toString() : input);
-  const prefix = multiplier < 0 ? '-' : '';
-
-  t.equal(n(multiplier * 0), '0', 'zero');
-  t.equal(n(multiplier * 1), prefix + '1', 'one digit');
-  t.equal(n(multiplier * 12), prefix + '12', 'two digits');
-  t.equal(n(multiplier * 123), prefix + '123', 'three digits');
-  t.equal(n(multiplier * 1234), prefix + '1,234', 'four digits');
-  t.equal(n(multiplier * 12345), prefix + '12,345', 'five digits');
-  t.equal(n(multiplier * 123456), prefix + '123,456', 'six digits');
-  t.equal(n(multiplier * 1234567), prefix + '1,234,567', 'seven digits');
-  t.end();
-});
-```
-
-This produces similar output to before:
-
-```
-TAP version 13
-# Util: numberWithCommas: multiplier[0] string[0]
-ok 1 zero
-ok 2 one digit
-ok 3 two digits
-ok 4 three digits
-ok 5 four digits
-ok 6 five digits
-ok 7 six digits
-ok 8 seven digits
-# Util: numberWithCommas: multiplier[0] string[1]
-ok 9 zero
-ok 10 one digit
-ok 11 two digits
-ok 12 three digits
-ok 13 four digits
-ok 14 five digits
-ok 15 six digits
-ok 16 seven digits
-# Util: numberWithCommas: multiplier[1] string[0]
-ok 17 zero
-ok 18 one digit
-ok 19 two digits
-ok 20 three digits
-ok 21 four digits
-ok 22 five digits
-ok 23 six digits
-ok 24 seven digits
-# Util: numberWithCommas: multiplier[1] string[1]
-ok 25 zero
-ok 26 one digit
-ok 27 two digits
-ok 28 three digits
-ok 29 four digits
-ok 30 five digits
-ok 31 six digits
-ok 32 seven digits
-
-1..32
-# tests 32
-# pass  32
-
-# ok
-```
-
-And if you wanted to reduce repetition in the test body, you could take it one
-step further:
-
-```javascript
 scenarioOutline(test, 'Util: numberWithCommas: ', {
   'multiplier': [1, -1],
   'string': [true, false],
@@ -323,10 +245,13 @@ scenarioOutline(test, 'Util: numberWithCommas: ', {
 });
 ```
 
-The above scenario outline produces the exact same tests as the above `scenario`
-example, but is more flexible and less repetitive. Yay!
+The above code produces 32 test cases (`2 * 2 * 8`). They test positive and
+negative numbers, passed as both strings or as numbers, to make sure the output
+of the function is correct. There's a special case for zero, as negative zero
+isn't a valid expected output. But the cool thing is that we were able to test
+all those cases with a single test body that contains only one assertion.
 
-## API
+## full api
 
 ### `scenario(test, prefix, testCases, testBody);`
 
@@ -348,7 +273,7 @@ Same as `scenario`, except `outline` has keys which are "sets" to combine. The
 `testBody` will be run once for each possible combination using one value from
 each set.
 
-## Contributing
+## contributing
 
 For suggestions, bug reports, or contributions, please open an issue or pull
 request on the project on GitHub! Feedback is very welcome.
