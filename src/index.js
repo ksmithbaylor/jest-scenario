@@ -1,6 +1,27 @@
+import intercept from 'intercept-stdout';
+
+////////////////////////////////////////////////////////////////////////////////
+// Helpers
+
 function pairs(object) {
   return Object.keys(object).map((key) => [key, object[key]]);
 }
+
+function onlyRunner(method) {
+  return function only(test, prefix, testCases, testBody) {
+    const sentinel = '__scenario.only__';
+    const unhook = intercept(line => (line.includes(sentinel) ? '' : line));
+
+    test.only(sentinel, t => {
+      t.on('end', unhook);
+      method(t.test, prefix, testCases, testBody);
+      t.end();
+    });
+  };
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Scenario
 
 export function scenario(test, prefix, testCases, testBody) {
   Object.keys(testCases).forEach(key => {
@@ -9,6 +30,11 @@ export function scenario(test, prefix, testCases, testBody) {
     });
   });
 }
+
+scenario.only = onlyRunner(scenario);
+
+////////////////////////////////////////////////////////////////////////////////
+// Scenario Outline
 
 export function combinations(sets) {
   return pairs(sets).reduceRight((oldResults, [setName, setValues]) => (
@@ -28,3 +54,5 @@ export function combinations(sets) {
 export function scenarioOutline(test, prefix, outline, testBody) {
   scenario(test, prefix, combinations(outline), testBody);
 }
+
+scenarioOutline.only = onlyRunner(scenarioOutline);

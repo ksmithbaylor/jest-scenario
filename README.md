@@ -273,6 +273,14 @@ Same as `scenario`, except `outline` has keys which are "sets" to combine. The
 `testBody` will be run once for each possible combination using one value from
 each set.
 
+### `scenario.only(test, prefix, testCases, testBody);`
+
+Just like tape's `test.only`, applied to `scenario`;
+
+### `scenarioOutline.only(test, prefix, outline, testBody);`
+
+Just like tape's `test.only`, applied to `scenarioOutline`;
+
 ## contributing
 
 For suggestions, bug reports, or contributions, please open an issue or pull

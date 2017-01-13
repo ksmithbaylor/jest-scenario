@@ -41,5 +41,8 @@
     "eslint-plugin-import": "^1.13.0",
     "tap-difflet": "^0.6.0",
     "tape": "^4.6.0"
+  },
+  "dependencies": {
+    "intercept-stdout": "^0.1.2"
   }
 }
