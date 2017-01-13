@@ -12,13 +12,40 @@ exports.scenario = scenario;
 exports.combinations = combinations;
 exports.scenarioOutline = scenarioOutline;
 
+var _interceptStdout = require('intercept-stdout');
+
+var _interceptStdout2 = _interopRequireDefault(_interceptStdout);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+////////////////////////////////////////////////////////////////////////////////
+// Helpers
 
 function pairs(object) {
   return Object.keys(object).map(function (key) {
     return [key, object[key]];
   });
 }
+
+function onlyRunner(method) {
+  return function only(test, prefix, testCases, testBody) {
+    var sentinel = '__scenario.only__';
+    var unhook = (0, _interceptStdout2.default)(function (line) {
+      return line.includes(sentinel) ? '' : line;
+    });
+
+    test.only(sentinel, function (t) {
+      t.on('end', unhook);
+      method(t.test, prefix, testCases, testBody);
+      t.end();
+    });
+  };
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Scenario
 
 function scenario(test, prefix, testCases, testBody) {
   Object.keys(testCases).forEach(function (key) {
@@ -27,6 +54,11 @@ function scenario(test, prefix, testCases, testBody) {
     });
   });
 }
+
+scenario.only = onlyRunner(scenario);
+
+////////////////////////////////////////////////////////////////////////////////
+// Scenario Outline
 
 function combinations(sets) {
   return pairs(sets).reduceRight(function (oldResults, _ref) {
@@ -49,3 +81,5 @@ function combinations(sets) {
 function scenarioOutline(test, prefix, outline, testBody) {
   scenario(test, prefix, combinations(outline), testBody);
 }
+
+scenarioOutline.only = onlyRunner(scenarioOutline);
