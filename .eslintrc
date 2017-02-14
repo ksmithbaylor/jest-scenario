@@ -1,7 +1,15 @@
 {
   "extends": "airbnb-base",
   "parser": "babel-eslint",
+  "globals": {
+    "describe": true,
+    "it": true,
+    "expect": true,
+    "scenario": true,
+    "scenarioOutline": true
+  },
   "rules": {
-    "comma-dangle": 0
+    "comma-dangle": 0,
+    "spaced-comment": 0
   }
 }
