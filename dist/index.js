@@ -12,12 +12,6 @@ exports.scenario = scenario;
 exports.combinations = combinations;
 exports.scenarioOutline = scenarioOutline;
 
-var _interceptStdout = require('intercept-stdout');
-
-var _interceptStdout2 = _interopRequireDefault(_interceptStdout);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,27 +24,26 @@ function pairs(object) {
 }
 
 function onlyRunner(method) {
-  return function only(test, prefix, testCases, testBody) {
-    var sentinel = '__scenario.only__';
-    var unhook = (0, _interceptStdout2.default)(function (line) {
-      return line.includes(sentinel) ? '' : line;
-    });
+  return function only() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
 
-    test.only(sentinel, function (t) {
-      t.on('end', unhook);
-      method(t.test, prefix, testCases, testBody);
-      t.end();
-    });
+    method.apply(undefined, args.concat([it.only]));
   };
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scenario
 
-function scenario(test, prefix, testCases, testBody) {
-  Object.keys(testCases).forEach(function (key) {
-    test(prefix + key, function (t) {
-      testBody(t, testCases[key]);
+function scenario(prefix, testCases, testBody) {
+  var testFunction = arguments.length <= 3 || arguments[3] === undefined ? it : arguments[3];
+
+  describe(prefix, function () {
+    Object.keys(testCases).forEach(function (title) {
+      testFunction(title, function () {
+        testBody(testCases[title]);
+      });
     });
   });
 }
@@ -78,8 +71,10 @@ function combinations(sets) {
   }, { '': {} });
 }
 
-function scenarioOutline(test, prefix, outline, testBody) {
-  scenario(test, prefix, combinations(outline), testBody);
+function scenarioOutline(prefix, outline, testBody) {
+  var testFunction = arguments.length <= 3 || arguments[3] === undefined ? it : arguments[3];
+
+  scenario(prefix, combinations(outline), testBody, testFunction);
 }
 
 scenarioOutline.only = onlyRunner(scenarioOutline);
